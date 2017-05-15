@@ -1,7 +1,4 @@
 ﻿$ErrorActionPreference = 'Stop'
-Import-Module -Name 'Microsoft.PowerShell.Management' # gMSA workaround
-Import-Module -Name 'Microsoft.PowerShell.Utility' # gMSA workaround
-Import-Module -Name 'Microsoft.PowerShell.Security' # gMSA workaround
 Import-Module -Name 'ActiveDirectory'
 . "$PSScriptRoot\Config.ps1"
 $adParams = @{
