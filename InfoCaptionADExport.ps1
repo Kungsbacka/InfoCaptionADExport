@@ -3,11 +3,11 @@ Import-Module -Name 'ActiveDirectory'
 . "$PSScriptRoot\Config.ps1"
 $adParams = @{
     Filter = $Script:Config.Filter
-    Properties = @('Mail','Title','Department','ExtensionAttribute14','Surname','GivenName')
+    Properties = @('UserPrincipalName','Title','Department','msDS-cloudExtensionAttribute14','Surname','GivenName')
 }
 $selectProps = @(
-    @{Name = 'Anvandare'  ;Expression = {$_.ExtensionAttribute14}}
-    @{Name = 'Epost'      ;Expression = {$_.Mail}}
+    @{Name = 'Anvandare'  ;Expression = {$_.'msDS-cloudExtensionAttribute14'}}
+    @{Name = 'Epost'      ;Expression = {$_.UserPrincipalName}}
     @{Name = 'Fornamn'    ;Expression = {$_.GivenName}}
     @{Name = 'Efternamn'  ;Expression = {$_.Surname}}
     @{Name = 'Forvaltning';Expression = {$_.Department}}
