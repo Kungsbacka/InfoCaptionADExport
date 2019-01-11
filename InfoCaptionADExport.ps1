@@ -1,5 +1,4 @@
-﻿$ErrorActionPreference = 'Stop'
-Import-Module -Name 'ActiveDirectory'
+﻿Import-Module -Name 'ActiveDirectory'
 . "$PSScriptRoot\Config.ps1"
 $adParams = @{
     Filter = $Script:Config.Filter
@@ -22,5 +21,5 @@ Get-ADUser @adParams | Select-Object -Property $selectProps | ConvertTo-Csv -NoT
 $password = (New-Object -TypeName 'PSCredential' -ArgumentList @('not used', ($Script:Config.Password | ConvertTo-SecureString))).GetNetworkCredential().Password
 # -k ignores certificate errors and allows for self signed certificates
 # without trusting them first. It's ok since this should be a well known FTP server.
-& "$PSScriptRoot\curl.exe" -k --ftp-ssl -T "$PSScriptRoot\kungsbacka.csv" "ftp://$($Script:Config.Host)" -u "$($Script:Config.Username):$password" | Out-Null
+& "$PSScriptRoot\curl.exe" -k -s --ssl -T "$PSScriptRoot\kungsbacka.csv" "ftp://$($Script:Config.Host)" -u "$($Script:Config.Username):$password" | Out-Null
 Remove-Item -Path "$PSScriptRoot\kungsbacka.csv"
