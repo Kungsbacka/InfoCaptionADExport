@@ -2,21 +2,33 @@
 . "$PSScriptRoot\Config.ps1"
 $adParams = @{
     Filter = $Script:Config.Filter
-    Properties = @('UserPrincipalName','Title','Department','msDS-cloudExtensionAttribute14','Surname','GivenName')
+    Properties = @('UserPrincipalName','Title','Department','msDS-cloudExtensionAttribute14','Surname','GivenName','Manager','EmailAddress')
 }
-$selectProps = @(
-    @{Name = 'Anvandare'  ;Expression = {$_.'msDS-cloudExtensionAttribute14'}}
-    @{Name = 'Epost'      ;Expression = {$_.UserPrincipalName}}
-    @{Name = 'Fornamn'    ;Expression = {$_.GivenName}}
-    @{Name = 'Efternamn'  ;Expression = {$_.Surname}}
-    @{Name = 'Forvaltning';Expression = {$_.Department}}
-    @{Name = 'Befattning' ;Expression = {$_.Title}}
-)
 # Cannot use Export-Csv since InfoCaption requires that header columns are not quoted.
-'Anvandare,Epost,Fornamn,Efternamn,Forvaltning,Befattning' |
+'Anvandare,Epost,Fornamn,Efternamn,Forvaltning,Befattning,Eposttva,Chefsnamn,Chefepost' |
     Out-File "$PSScriptRoot\kungsbacka.csv" -Encoding UTF8 -Force
-Get-ADUser @adParams | Select-Object -Property $selectProps | ConvertTo-Csv -NoTypeInformation | Select-Object -Skip 1 |
-    Out-File "$PSScriptRoot\kungsbacka.csv" -Encoding UTF8 -Append
+Get-ADUser @adParams |
+    Foreach-Object -Process {
+        $o = [PSCustomObject]@{
+            Anvandare = $_.'msDS-cloudExtensionAttribute14'
+            Epost = $_.UserPrincipalName
+            Fornamn = $_.GivenName
+            Efternamn = $_.Surname
+            Forvaltning = $_.Department
+            Befattningq = $_.Title
+            Eposttva = $_.EmailAddress
+            Chefsnamn = ''
+            Chefepost = ''
+        }
+        if ($_.Manager) {
+            $m = Get-ADUser $_.Manager -Properties 'DisplayName','EmailAddress' -ErrorAction SilentlyContinue
+            if ($m) {
+                $o.Chefsnamn = $m.DisplayName
+                $o.Chefepost = $m.EmailAddress
+            }
+        }
+        $o
+    } | ConvertTo-Csv -NoTypeInformation | Select-Object -Skip 1 | Out-File "$PSScriptRoot\kungsbacka.csv" -Encoding UTF8 -Append
 # Decrypt password
 $password = (New-Object -TypeName 'PSCredential' -ArgumentList @('not used', ($Script:Config.Password | ConvertTo-SecureString))).GetNetworkCredential().Password
 # -k ignores certificate errors and allows for self signed certificates
