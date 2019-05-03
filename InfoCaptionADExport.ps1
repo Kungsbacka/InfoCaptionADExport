@@ -31,7 +31,6 @@ Get-ADUser @adParams |
     } | ConvertTo-Csv -NoTypeInformation | Select-Object -Skip 1 | Out-File "$PSScriptRoot\kungsbacka.csv" -Encoding UTF8 -Append
 # Decrypt password
 $password = (New-Object -TypeName 'PSCredential' -ArgumentList @('not used', ($Script:Config.Password | ConvertTo-SecureString))).GetNetworkCredential().Password
-# -k ignores certificate errors and allows for self signed certificates
-# without trusting them first. It's ok since this should be a well known FTP server.
+# -k ignores certificate errors and allows for self signed certificates without trusting them first.
 & "$PSScriptRoot\curl.exe" -k -s --ssl -T "$PSScriptRoot\kungsbacka.csv" "ftp://$($Script:Config.Host)" -u "$($Script:Config.Username):$password" | Out-Null
 Remove-Item -Path "$PSScriptRoot\kungsbacka.csv"
